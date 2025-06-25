@@ -6,19 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Play, Square, Camera, AlertTriangle, Activity, Brain, FileText } from 'lucide-react';
-import EmotionSessionControls from '@/components/EmotionSessionControls';
+import { Play, Square, Camera, AlertTriangle, Activity } from 'lucide-react';
 import { 
-  EmotionSession, 
-  EmotionDataPoint, 
   emotionTranslations, 
   emotionColors, 
-  emotionEmojis,
-  generateSessionId,
-  calculateEmotionSummary
+  emotionEmojis
 } from '@/lib/emotion-types';
-import { SimplePDFGenerator } from '@/lib/simple-pdf-generator';
 
 interface EmotionResult {
   emotion: string;
@@ -35,16 +28,10 @@ export default function EmotionDetectionClient() {
   const [error, setError] = useState<string | null>(null);
   const [hasCamera, setHasCamera] = useState(false);
   
-  // Session tracking states
-  const [currentSession, setCurrentSession] = useState<EmotionSession | null>(null);
-  const [isSessionActive, setIsSessionActive] = useState(false);
-  const [sessionData, setSessionData] = useState<EmotionDataPoint[]>([]);
-  
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const detectionIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const sessionStartTimeRef = useRef<number>(0);
 
   // Load Face API models
   useEffect(() => {
@@ -160,36 +147,6 @@ export default function EmotionDetectionClient() {
 
           setCurrentEmotion(newEmotion);
           setEmotionHistory(prev => [newEmotion, ...prev.slice(0, 9)]); // Keep last 10
-
-          // Record data for active session with actual elapsed time
-          if (isSessionActive && currentSession) {
-            const elapsedSeconds = Math.round((Date.now() - sessionStartTimeRef.current) / 1000);
-            
-            const dataPoint: EmotionDataPoint = {
-              timestamp: elapsedSeconds,
-              emotions: {
-                angry: expressions.angry,
-                disgusted: expressions.disgusted,
-                fearful: expressions.fearful,
-                happy: expressions.happy,
-                neutral: expressions.neutral,
-                sad: expressions.sad,
-                surprised: expressions.surprised
-              },
-              confidence,
-              dominantEmotion: emotion
-            };
-
-            // Only add if it's been at least 1 second since last data point
-            setSessionData(prev => {
-              const lastPoint = prev[prev.length - 1];
-              if (!lastPoint || elapsedSeconds > lastPoint.timestamp) {
-                console.log('📊 Adding data point:', { time: elapsedSeconds, emotion, confidence: Math.round(confidence * 100) });
-                return [...prev, dataPoint];
-              }
-              return prev;
-            });
-          }
         }
 
         // Draw detections on canvas
@@ -232,94 +189,6 @@ export default function EmotionDetectionClient() {
       detectionIntervalRef.current = null;
     }
   };
-
-  // Session Management Functions
-  const startSession = useCallback((targetDuration: number) => {
-    const session: EmotionSession = {
-      id: generateSessionId(),
-      startTime: new Date(),
-      endTime: null,
-      duration: targetDuration,
-      isActive: true,
-      data: []
-    };
-
-    setCurrentSession(session);
-    setIsSessionActive(true);
-    setSessionData([]);
-    sessionStartTimeRef.current = Date.now();
-    
-    console.log('🎬 Session started:', session.id);
-  }, []);
-
-  const stopSession = useCallback(() => {
-    if (currentSession) {
-      const endTime = new Date();
-      const actualDuration = Math.round((Date.now() - sessionStartTimeRef.current) / 1000);
-      
-      // Create final session with actual data
-      const updatedSession: EmotionSession = {
-        ...currentSession,
-        endTime,
-        duration: actualDuration,
-        isActive: false,
-        data: [...sessionData], // Use actual collected data
-        summary: calculateEmotionSummary(sessionData) // Calculate from real data
-      };
-
-      setCurrentSession(updatedSession);
-      setIsSessionActive(false);
-      
-      console.log('🛑 Session stopped:', updatedSession.id, `${actualDuration}s`, `${sessionData.length} data points`);
-      console.log('📊 Session data:', sessionData.slice(0, 3)); // Log first 3 data points for verification
-    }
-  }, [currentSession, sessionData]);
-
-  const pauseSession = useCallback(() => {
-    // Just pause data collection, keep session active
-    console.log('⏸️ Session paused');
-  }, []);
-
-  const resumeSession = useCallback(() => {
-    // Resume data collection
-    console.log('▶️ Session resumed');
-  }, []);
-
-  const resetSession = useCallback(() => {
-    setCurrentSession(null);
-    setIsSessionActive(false);
-    setSessionData([]);
-    setEmotionHistory([]);
-    sessionStartTimeRef.current = 0;
-    console.log('🔄 Session reset');
-  }, []);
-
-  const downloadReport = useCallback(async () => {
-    if (!currentSession || sessionData.length === 0) {
-      console.error('No session data available for PDF generation');
-      return;
-    }
-
-    try {
-      console.log('📄 Generating PDF report...');
-      
-      // Create session object with current data
-      const sessionForPDF: EmotionSession = {
-        ...currentSession,
-        data: sessionData,
-        endTime: new Date(),
-        duration: sessionData.length > 0 ? sessionData[sessionData.length - 1].timestamp : 0
-      };
-      
-      const pdfGenerator = new SimplePDFGenerator();
-      await pdfGenerator.generateEmotionReport(sessionForPDF);
-      pdfGenerator.downloadPDF(sessionForPDF);
-      console.log('✅ PDF downloaded successfully');
-    } catch (error) {
-      console.error('❌ Error generating PDF:', error);
-      setError('Gagal membuat laporan PDF. Silakan coba lagi.');
-    }
-  }, [currentSession, sessionData]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -541,122 +410,26 @@ export default function EmotionDetectionClient() {
           </div>
         </div>
 
-        {/* Session Management */}
-        <Tabs defaultValue="detection" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="detection" className="flex items-center gap-2">
-              <Activity className="w-4 h-4" />
-              Deteksi Real-time
-            </TabsTrigger>
-            <TabsTrigger value="session" className="flex items-center gap-2">
-              <Brain className="w-4 h-4" />
-              Sesi Analisis
-            </TabsTrigger>
-            <TabsTrigger value="report" className="flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              Laporan
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="detection" className="mt-6">
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-sm text-muted-foreground space-y-2">
-                  <p><strong>💡 Tips Deteksi Real-time:</strong></p>
-                  <ul className="list-disc list-inside space-y-1 ml-4">
-                    <li>Pastikan wajah terlihat jelas dan pencahayaan cukup</li>
-                    <li>Hindari gerakan terlalu cepat untuk hasil yang lebih akurat</li>
-                    <li>Model AI dapat mendeteksi 7 emosi dasar: senang, sedih, marah, takut, terkejut, jijik, dan netral</li>
-                    <li>Deteksi berjalan secara real-time tanpa menyimpan data video</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="session" className="mt-6">
-            <EmotionSessionControls
-              currentSession={currentSession}
-              onStartSession={startSession}
-              onStopSession={stopSession}
-              onPauseSession={pauseSession}
-              onResumeSession={resumeSession}
-              onResetSession={resetSession}
-              onDownloadReport={downloadReport}
-              isDetecting={isDetecting}
-              currentEmotion={currentEmotion?.emotion || null}
-              confidence={currentEmotion?.confidence || 0}
-            />
-          </TabsContent>
-
-          <TabsContent value="report" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
-                  Laporan Analisis Emosi
-                </CardTitle>
-                <CardDescription>
-                  Download laporan PDF dari sesi analisis emosi
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {currentSession?.summary ? (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="text-center p-3 bg-muted rounded-lg">
-                        <div className="text-2xl font-bold">{currentSession.summary.totalDataPoints}</div>
-                        <div className="text-sm text-muted-foreground">Data Points</div>
-                      </div>
-                      <div className="text-center p-3 bg-muted rounded-lg">
-                        <div className="text-2xl font-bold">{Math.round(currentSession.duration)}s</div>
-                        <div className="text-sm text-muted-foreground">Durasi</div>
-                      </div>
-                      <div className="text-center p-3 bg-muted rounded-lg">
-                        <div className="text-2xl font-bold">
-                          {emotionTranslations[currentSession.summary.dominantEmotion] || currentSession.summary.dominantEmotion}
-                        </div>
-                        <div className="text-sm text-muted-foreground">Emosi Dominan</div>
-                      </div>
-                      <div className="text-center p-3 bg-muted rounded-lg">
-                        <div className="text-2xl font-bold">{currentSession.summary.confidenceScore}%</div>
-                        <div className="text-sm text-muted-foreground">Akurasi Rata-rata</div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <h4 className="font-semibold">Distribusi Emosi:</h4>
-                      {Object.entries(currentSession.summary.averageEmotions)
-                        .sort(([,a], [,b]) => (b as number) - (a as number))
-                        .slice(0, 5)
-                        .map(([emotion, value]) => (
-                          <div key={emotion} className="flex justify-between items-center">
-                            <span className="flex items-center gap-2">
-                              <Badge variant="secondary" className={emotionColors[emotion]}>
-                                {emotionTranslations[emotion] || emotion}
-                              </Badge>
-                            </span>
-                            <span className="font-medium">{((value as number) * 100).toFixed(1)}%</span>
-                          </div>
-                        ))}
-                    </div>
-
-                    <Button onClick={downloadReport} className="w-full">
-                      <FileText className="w-4 h-4 mr-2" />
-                      Download Laporan PDF
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-                    <p>Belum ada data sesi untuk dibuat laporan</p>
-                    <p className="text-sm">Mulai sesi analisis terlebih dahulu di tab &quot;Sesi Analisis&quot;</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        {/* Tips Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="w-5 h-5" />
+              Tips Deteksi Real-time
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-sm text-muted-foreground space-y-2">
+              <p><strong>💡 Tips untuk Hasil Terbaik:</strong></p>
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li>Pastikan wajah terlihat jelas dan pencahayaan cukup</li>
+                <li>Hindari gerakan terlalu cepat untuk hasil yang lebih akurat</li>
+                <li>Model AI dapat mendeteksi 7 emosi dasar: senang, sedih, marah, takut, terkejut, jijik, dan netral</li>
+                <li>Deteksi berjalan secara real-time tanpa menyimpan data video</li>
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
 
       </div>
     </div>
