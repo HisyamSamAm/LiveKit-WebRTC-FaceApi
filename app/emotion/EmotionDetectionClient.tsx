@@ -6,12 +6,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Play, Square, Camera, AlertTriangle, Activity } from 'lucide-react';
+import { Play, Square, Camera, AlertTriangle, Activity, BarChart3 } from 'lucide-react';
 import { 
   emotionTranslations, 
   emotionColors, 
   emotionEmojis
 } from '@/lib/emotion-types';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
+import { Bar, Doughnut } from 'react-chartjs-2';
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
 interface EmotionResult {
   emotion: string;
@@ -27,6 +31,7 @@ export default function EmotionDetectionClient() {
   const [emotionHistory, setEmotionHistory] = useState<EmotionResult[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [hasCamera, setHasCamera] = useState(false);
+  const [emotionStats, setEmotionStats] = useState<Record<string, number>>({});
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -147,6 +152,12 @@ export default function EmotionDetectionClient() {
 
           setCurrentEmotion(newEmotion);
           setEmotionHistory(prev => [newEmotion, ...prev.slice(0, 9)]); // Keep last 10
+          
+          // Update emotion statistics
+          setEmotionStats(prev => ({
+            ...prev,
+            [emotion]: (prev[emotion] || 0) + 1
+          }));
         }
 
         // Draw detections on canvas
@@ -197,6 +208,134 @@ export default function EmotionDetectionClient() {
       stopCamera();
     };
   }, []);
+
+  // Reset statistics
+  const resetStats = () => {
+    setEmotionStats({});
+    setEmotionHistory([]);
+    setCurrentEmotion(null);
+  };
+
+  // Prepare chart data
+  const prepareBarChartData = () => {
+    const emotions = Object.keys(emotionTranslations);
+    const data = emotions.map(emotion => emotionStats[emotion] || 0);
+    const labels = emotions.map(emotion => emotionTranslations[emotion]);
+    const backgroundColors = emotions.map(emotion => emotionColors[emotion]);
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Jumlah Deteksi',
+          data,
+          backgroundColor: backgroundColors,
+          borderColor: backgroundColors,
+          borderWidth: 1,
+          borderRadius: 4,
+          borderSkipped: false,
+          hoverBackgroundColor: backgroundColors.map(color => color + 'CC'),
+          hoverBorderWidth: 2,
+        },
+      ],
+    };
+  };
+
+  const prepareDoughnutChartData = () => {
+    const emotions = Object.keys(emotionStats);
+    if (emotions.length === 0) return { labels: [], datasets: [] };
+    
+    const data = emotions.map(emotion => emotionStats[emotion]);
+    const total = data.reduce((sum, value) => sum + value, 0);
+    const labels = emotions.map(emotion => {
+      const percentage = ((emotionStats[emotion] / total) * 100).toFixed(1);
+      return `${emotionTranslations[emotion]} (${percentage}%)`;
+    });
+    const backgroundColors = emotions.map(emotion => emotionColors[emotion]);
+
+    return {
+      labels,
+      datasets: [
+        {
+          data,
+          backgroundColor: backgroundColors,
+          borderColor: '#ffffff',
+          borderWidth: 2,
+          hoverBackgroundColor: backgroundColors.map(color => color + 'CC'),
+          hoverBorderWidth: 3,
+        },
+      ],
+    };
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+      title: {
+        display: false,
+      },
+      tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleColor: 'white',
+        bodyColor: 'white',
+        borderColor: 'rgba(255, 255, 255, 0.2)',
+        borderWidth: 1,
+        cornerRadius: 8,
+        displayColors: true,
+        callbacks: {
+          label: function(context: any) {
+            const total = Object.values(emotionStats).reduce((a: number, b: number) => a + b, 0);
+            const percentage = total > 0 ? ((context.parsed.y / total) * 100).toFixed(1) : '0';
+            return `${context.dataset.label}: ${context.parsed.y} (${percentage}%)`;
+          }
+        }
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          stepSize: 1,
+          color: 'rgba(0, 0, 0, 0.6)',
+        },
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
+        },
+      },
+      x: {
+        ticks: {
+          color: 'rgba(0, 0, 0, 0.6)',
+        },
+        grid: {
+          display: false,
+        },
+      },
+    },
+  };
+
+  const doughnutOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom' as const,
+        labels: {
+          padding: 20,
+          usePointStyle: true,
+          font: {
+            size: 12,
+          },
+        },
+      },
+      title: {
+        display: false,
+      },
+    },
+  };
 
   if (isLoading) {
     return (
@@ -403,6 +542,93 @@ export default function EmotionDetectionClient() {
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
                     Belum ada riwayat emosi
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Visualization Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5" />
+                  Visualisasi Emosi
+                </CardTitle>
+                <CardDescription>
+                  Grafik analisis emosi yang terdeteksi
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {Object.keys(emotionStats).length > 0 ? (
+                  <div className="space-y-6">
+                    
+                    {/* Charts Grid */}
+                    <div className="grid md:grid-cols-2 gap-6">
+                      
+                      {/* Bar Chart */}
+                      <div className="space-y-3">
+                        <h4 className="font-medium text-center">Jumlah Deteksi per Emosi</h4>
+                        <div className="h-64 w-full p-2 bg-muted/30 rounded-lg">
+                          <Bar 
+                            options={chartOptions} 
+                            data={prepareBarChartData()} 
+                          />
+                        </div>
+                      </div>
+
+                      {/* Doughnut Chart */}
+                      <div className="space-y-3">
+                        <h4 className="font-medium text-center">Distribusi Emosi (%)</h4>
+                        <div className="h-64 w-full p-2 bg-muted/30 rounded-lg flex items-center justify-center">
+                          <div className="w-full max-w-[200px]">
+                            <Doughnut 
+                              options={doughnutOptions} 
+                              data={prepareDoughnutChartData()} 
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Statistics Summary */}
+                    <div className="grid grid-cols-2 gap-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border">
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                          <Activity className="w-4 h-4 text-blue-600" />
+                          <p className="text-2xl font-bold text-blue-600">
+                            {Object.values(emotionStats).reduce((a, b) => a + b, 0)}
+                          </p>
+                        </div>
+                        <p className="text-sm text-muted-foreground">Total Deteksi</p>
+                      </div>
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                          <BarChart3 className="w-4 h-4 text-purple-600" />
+                          <p className="text-2xl font-bold text-purple-600">
+                            {Object.keys(emotionStats).length}
+                          </p>
+                        </div>
+                        <p className="text-sm text-muted-foreground">Jenis Emosi</p>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-center">
+                      <Button 
+                        onClick={resetStats} 
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-2"
+                      >
+                        <Activity className="w-4 h-4" />
+                        Reset Statistik
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <BarChart3 className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <h3 className="text-lg font-medium mb-2">Belum Ada Data Visualisasi</h3>
+                    <p className="text-sm">Mulai deteksi emosi untuk melihat grafik dan statistik</p>
                   </div>
                 )}
               </CardContent>
