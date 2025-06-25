@@ -351,8 +351,8 @@ export default function EmotionDetectionClient() {
                 {currentEmotion ? (
                   <div className="text-center space-y-4">
                     <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full text-white ${emotionColors[currentEmotion.emotion]}`}>
-                      <span className="text-2xl font-bold">
-                        {emotionTranslations[currentEmotion.emotion]?.charAt(0) || '?'}
+                      <span className="text-3xl">
+                        {emotionEmojis[currentEmotion.emotion] || '😐'}
                       </span>
                     </div>
                     <div>
@@ -386,6 +386,7 @@ export default function EmotionDetectionClient() {
                     {emotionHistory.map((emotion, index) => (
                       <div key={index} className="flex items-center justify-between p-2 rounded border">
                         <div className="flex items-center gap-2">
+                          <span className="text-lg">{emotionEmojis[emotion.emotion] || '😐'}</span>
                           <Badge variant="secondary" className={emotionColors[emotion.emotion]}>
                             {emotionTranslations[emotion.emotion] || emotion.emotion}
                           </Badge>
