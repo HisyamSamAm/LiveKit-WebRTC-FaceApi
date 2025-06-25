@@ -205,7 +205,7 @@ export function RoomCodeDisplay({
             </div>
             <div className="flex items-start space-x-2">
               <span className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium">2</span>
-              <span>Peserta buka KolabEmpati dan pilih "Bergabung dengan Kode"</span>
+              <span>Peserta buka KolabEmpati dan pilih &quot;Bergabung dengan Kode&quot;</span>
             </div>
             <div className="flex items-start space-x-2">
               <span className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium">3</span>

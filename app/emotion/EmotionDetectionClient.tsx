@@ -650,7 +650,7 @@ export default function EmotionDetectionClient() {
                   <div className="text-center py-8 text-muted-foreground">
                     <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
                     <p>Belum ada data sesi untuk dibuat laporan</p>
-                    <p className="text-sm">Mulai sesi analisis terlebih dahulu di tab "Sesi Analisis"</p>
+                    <p className="text-sm">Mulai sesi analisis terlebih dahulu di tab &quot;Sesi Analisis&quot;</p>
                   </div>
                 )}
               </CardContent>
