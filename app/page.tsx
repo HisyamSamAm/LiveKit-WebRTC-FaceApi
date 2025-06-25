@@ -193,7 +193,7 @@ function DemoMeetingTab() {
             <ul className="text-xs text-muted-foreground space-y-1">
               <li>• Meeting akan mendapat kode unik 6 karakter</li>
               <li>• Bagikan kode ke peserta untuk bergabung</li>
-              <li>• Peserta dapat masuk via tab "Bergabung"</li>
+              <li>• Peserta dapat masuk via tab &quot;Bergabung&quot;</li>
               <li>• Kode berlaku selama meeting aktif</li>
             </ul>
           </div>
