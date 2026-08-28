@@ -20,7 +20,7 @@ export function MicrophoneSettings() {
   React.useEffect(() => {
     // enable Krisp by default
     setNoiseFilterEnabled(true);
-  }, []);
+  }, [setNoiseFilterEnabled]);
   return (
     <div
       style={{
