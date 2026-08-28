@@ -10,13 +10,13 @@ export const emotionTranslations: Record<string, string> = {
 };
 
 export const emotionColors: Record<string, string> = {
-  angry: '#EF4444',
-  disgusted: '#84CC16',
-  fearful: '#8B5CF6', 
-  happy: '#22C55E',
-  neutral: '#6B7280',
-  sad: '#3B82F6',
-  surprised: '#F59E0B'
+  angry: '#f43f5e',
+  disgusted: '#d97706',
+  fearful: '#8b5cf6', 
+  happy: '#10b981',
+  neutral: '#64748b',
+  sad: '#1f8cf9',
+  surprised: '#06b6d4'
 };
 
 export const emotionEmojis: Record<string, string> = {
@@ -28,3 +28,4 @@ export const emotionEmojis: Record<string, string> = {
   sad: '😢',
   surprised: '😲'
 };
+

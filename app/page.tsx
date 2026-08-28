@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation"
 import type React from "react"
 import { Suspense, useState } from "react"
-import { encodePassphrase, generateRoomId, randomString, generateRoomWithCode } from "@/lib/client-utils"
+import { encodePassphrase, randomString, generateRoomWithCode } from "@/lib/client-utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs as ShadcnTabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -11,17 +11,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
-import { Video, Shield, Users, Zap, Globe, Lock, Play, Settings, Sparkles, Heart, CheckCircle, Brain, Hash, UserPlus } from "lucide-react"
+import { Video, Shield, Users, Zap, Globe, Lock, Play, Sparkles, Heart, CheckCircle2, Brain, Hash, UserPlus, ArrowUpRight } from "lucide-react"
 import { JoinByCode } from "@/components/JoinByCode"
 import { RoomCodeDisplay } from "@/components/RoomCodeDisplay"
 
-// NOTE: Custom server tab is temporarily disabled
-// Only Demo tab is available for now
-// To re-enable, uncomment the CustomConnectionTab function and TabsList below
-
 function TabsComponent(props: React.PropsWithChildren<{}>) {
   const searchParams = useSearchParams()
-  // Support for join tab
   const currentTab = searchParams?.get("tab") === "join" ? "join" : "demo"
 
   const router = useRouter()
@@ -30,32 +25,34 @@ function TabsComponent(props: React.PropsWithChildren<{}>) {
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto flex flex-col items-center">
+    <div className="w-full max-w-lg mx-auto flex flex-col items-center">
       <ShadcnTabs value={currentTab} onValueChange={onTabChange} className="w-full">
-        {/* Tabs for Demo and Join by Code */}
-        <TabsList className="grid w-full grid-cols-2 mb-8 h-12">
-          <TabsTrigger value="demo" className="text-base font-medium">
-            <Play className="h-4 w-4 mr-2" />
+        {/* LiveKit-style Segmented Tabs */}
+        <TabsList className="grid w-full grid-cols-2 mb-6 h-12 bg-[#181818] border border-white/10 p-1 rounded-xl">
+          <TabsTrigger 
+            value="demo" 
+            className="text-sm font-medium rounded-lg text-white/70 data-[state=active]:bg-[#282828] data-[state=active]:text-white transition-all"
+          >
+            <Play className="h-4 w-4 mr-2 text-[#1f8cf9]" />
             Buat Meeting
           </TabsTrigger>
-          <TabsTrigger value="join" className="text-base font-medium">
-            <UserPlus className="h-4 w-4 mr-2" />
+          <TabsTrigger 
+            value="join" 
+            className="text-sm font-medium rounded-lg text-white/70 data-[state=active]:bg-[#282828] data-[state=active]:text-white transition-all"
+          >
+            <UserPlus className="h-4 w-4 mr-2 text-[#1f8cf9]" />
             Bergabung
           </TabsTrigger>
         </TabsList>
         
         {/* Demo Meeting Tab */}
-        <TabsContent value="demo" className="mt-0 w-full flex justify-center">
-          <div className="w-full max-w-lg">
-            <DemoMeetingTab />
-          </div>
+        <TabsContent value="demo" className="mt-0 w-full">
+          <DemoMeetingTab />
         </TabsContent>
         
         {/* Join by Code Tab */}
-        <TabsContent value="join" className="mt-0 w-full flex justify-center">
-          <div className="w-full max-w-lg">
-            <JoinByCode onBack={() => router.push('/?tab=demo')} />
-          </div>
+        <TabsContent value="join" className="mt-0 w-full">
+          <JoinByCode onBack={() => router.push('/?tab=demo')} />
         </TabsContent>
       </ShadcnTabs>
     </div>
@@ -115,61 +112,62 @@ function DemoMeetingTab() {
         <Button
           onClick={resetForm}
           variant="outline"
-          className="w-full"
+          className="w-full h-11 border-white/10 bg-[#1a1a1a] hover:bg-[#222222] text-white rounded-xl"
         >
           Buat Meeting Baru
         </Button>
       </div>
     )
   }
+
   return (
-    <Card className="border-2 border-primary/20 shadow-2xl bg-gradient-to-br from-card to-card/50 w-full mx-auto">
-      <CardHeader className="text-center pb-4">
-        <div className="mx-auto mb-4 w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-          <Video className="h-8 w-8 text-white" />
-        </div>        <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+    <Card className="border border-white/10 bg-[#161616] text-white shadow-2xl rounded-2xl overflow-hidden">
+      <CardHeader className="text-center pb-4 pt-6">
+        <div className="mx-auto mb-3 w-12 h-12 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-[#1f8cf9]">
+          <Video className="h-6 w-6" />
+        </div>
+        <CardTitle className="text-xl font-semibold text-white">
           Buat Meeting Baru
         </CardTitle>
-        <CardDescription className="text-base text-muted-foreground">
-          Buat meeting dengan kode unik yang mudah dibagikan.
-          <br />
-          Tidak perlu registrasi atau instalasi.
+        <CardDescription className="text-sm text-neutral-400">
+          Mulai video conference instan dengan kode unik. Tidak perlu registrasi akun.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      
+      <CardContent className="space-y-5 p-6 pt-2">
         <Button
           onClick={createRoom}
-          className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-200"
+          className="w-full h-12 text-sm font-medium bg-[#1f8cf9] hover:bg-[#1a7ad9] text-white shadow-lg shadow-[#1f8cf9]/20 transition-all rounded-xl"
           size="lg"
         >
-          <Hash className="h-5 w-5 mr-2" />
+          <Hash className="h-4 w-4 mr-2" />
           Buat Meeting dengan Kode
         </Button>
 
-        <div className="space-y-4 pt-2">
-          <div className="flex items-start space-x-3 p-4 rounded-lg bg-muted/50 border">
+        <div className="space-y-4">
+          <div className="flex items-start space-x-3 p-4 rounded-xl bg-[#1a1a1a] border border-white/10">
             <Checkbox
               id="use-e2ee"
               checked={e2ee}
               onCheckedChange={(checked) => setE2ee(checked as boolean)}
-              className="mt-0.5"
+              className="mt-0.5 border-white/20 data-[state=checked]:bg-[#1f8cf9] data-[state=checked]:border-[#1f8cf9]"
             />
             <div className="space-y-1">
-              <Label htmlFor="use-e2ee" className="text-sm font-medium flex items-center">
-                <Shield className="h-4 w-4 mr-2 text-green-600" />
-                Aktifkan enkripsi end-to-end
+              <Label htmlFor="use-e2ee" className="text-sm font-medium text-white flex items-center cursor-pointer">
+                <Shield className="h-4 w-4 mr-2 text-emerald-400" />
+                Aktifkan enkripsi end-to-end (E2EE)
               </Label>
-              <p className="text-xs text-muted-foreground">Lindungi percakapan Anda dengan enkripsi tingkat militer</p>
+              <p className="text-xs text-neutral-400">Enkripsi stream video dan audio secara langsung di sisi browser</p>
             </div>
           </div>
 
           {e2ee && (
-            <div className="space-y-3 p-4 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800">
+            <div className="space-y-3 p-4 rounded-xl bg-[#1a1a1a] border border-emerald-500/30">
               <Label
                 htmlFor="passphrase"
-                className="text-sm font-medium flex items-center text-green-700 dark:text-green-400"
+                className="text-xs font-medium flex items-center text-emerald-400"
               >
-                <Lock className="h-4 w-4 mr-2" />
+                <Lock className="h-3.5 w-3.5 mr-1.5" />
                 Kata Sandi Enkripsi
               </Label>
               <Input
@@ -178,23 +176,23 @@ function DemoMeetingTab() {
                 value={sharedPassphrase}
                 onChange={(ev) => setSharedPassphrase(ev.target.value)}
                 placeholder="Masukkan kata sandi"
-                className="border-green-300 dark:border-green-700 focus:border-green-500"
+                className="bg-[#111111] border-white/15 text-white focus:border-emerald-500 rounded-lg h-10 text-sm"
               />
-              <p className="text-xs text-green-600 dark:text-green-400">
+              <p className="text-[11px] text-neutral-400">
                 Bagikan kata sandi ini dengan peserta lain secara aman
-              </p>            </div>
+              </p>
+            </div>
           )}
 
-          <div className="bg-muted/50 rounded-lg p-4 border">
-            <h4 className="font-medium text-sm mb-2 flex items-center">
-              <Hash className="h-4 w-4 mr-2" />
-              Cara Kerja Kode Meeting
+          <div className="bg-[#121212] rounded-xl p-4 border border-white/10">
+            <h4 className="font-medium text-xs text-neutral-300 mb-2 flex items-center">
+              <Hash className="h-3.5 w-3.5 mr-1.5 text-[#1f8cf9]" />
+              Cara Kerja Room Meeting
             </h4>
-            <ul className="text-xs text-muted-foreground space-y-1">
-              <li>• Meeting akan mendapat kode unik 6 karakter</li>
-              <li>• Bagikan kode ke peserta untuk bergabung</li>
-              <li>• Peserta dapat masuk via tab &quot;Bergabung&quot;</li>
-              <li>• Kode berlaku selama meeting aktif</li>
+            <ul className="text-xs text-neutral-400 space-y-1.5">
+              <li>• Meeting menghasilkan kode 6 karakter alfanumerik</li>
+              <li>• Bagikan kode atau tautan langsung kepada rekan kerja</li>
+              <li>• Kompatibel dengan semua browser WebRTC modern</li>
             </ul>
           </div>
         </div>
@@ -203,225 +201,91 @@ function DemoMeetingTab() {
   )
 }
 
-/* 
-// CustomConnectionTab function - Currently disabled
-function CustomConnectionTab() {
-  const router = useRouter()
-  const [e2ee, setE2ee] = useState(false)
-  const [sharedPassphrase, setSharedPassphrase] = useState(randomString(64))
-
-  const onSubmit: React.FormEventHandler<HTMLFormElement> = (event) => {
-    event.preventDefault()
-    const formData = new FormData(event.target as HTMLFormElement)
-    const serverUrl = formData.get("serverUrl")
-    const token = formData.get("token")
-    if (e2ee) {
-      router.push(`/custom/?liveKitUrl=${serverUrl}&token=${token}#${encodePassphrase(sharedPassphrase)}`)
-    } else {
-      router.push(`/custom/?liveKitUrl=${serverUrl}&token=${token}`)
-    }
-  }
-  return (
-    <Card className="border-2 border-orange-200 dark:border-orange-800 shadow-2xl bg-gradient-to-br from-card to-orange-50/50 dark:to-orange-950/20 w-full mx-auto">
-      <CardHeader className="text-center pb-4">
-        <div className="mx-auto mb-4 w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center shadow-lg">
-          <Globe className="h-8 w-8 text-white" />
-        </div>
-        <CardTitle className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-          Koneksi Kustom
-        </CardTitle>
-        <CardDescription className="text-base text-muted-foreground">
-          Hubungkan dengan server LiveKit Anda sendiri untuk kontrol penuh.
-          <br />
-          Cocok untuk enterprise dan penggunaan advanced.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={onSubmit} className="space-y-6">
-          <div className="space-y-3">
-            <Label htmlFor="serverUrl" className="text-sm font-medium flex items-center">
-              <Globe className="h-4 w-4 mr-2 text-blue-600" />
-              LiveKit Server URL
-            </Label>
-            <Input
-              id="serverUrl"
-              name="serverUrl"
-              type="url"
-              placeholder="wss://your-server.livekit.cloud"
-              required
-              className="h-12"
-            />
-            <p className="text-xs text-muted-foreground">URL server LiveKit Cloud atau self-hosted server Anda</p>
-          </div>
-
-          <div className="space-y-3">
-            <Label htmlFor="token" className="text-sm font-medium flex items-center">
-              <Shield className="h-4 w-4 mr-2 text-purple-600" />
-              Access Token
-            </Label>
-            <textarea
-              id="token"
-              name="token"
-              placeholder="Paste your LiveKit access token here..."
-              required
-              rows={4}
-              className="flex w-full rounded-md border border-input bg-background px-3 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none font-mono"
-            />
-            <p className="text-xs text-muted-foreground">Token JWT yang dihasilkan dari LiveKit server Anda</p>
-          </div>
-
-          <div className="flex items-start space-x-3 p-4 rounded-lg bg-muted/50 border">
-            <Checkbox
-              id="use-e2ee-custom"
-              checked={e2ee}
-              onCheckedChange={(checked) => setE2ee(checked as boolean)}
-              className="mt-0.5"
-            />
-            <div className="space-y-1">
-              <Label htmlFor="use-e2ee-custom" className="text-sm font-medium flex items-center">
-                <Shield className="h-4 w-4 mr-2 text-green-600" />
-                Aktifkan enkripsi end-to-end
-              </Label>
-              <p className="text-xs text-muted-foreground">Tambahan keamanan untuk server kustom Anda</p>
-            </div>
-          </div>
-
-          {e2ee && (
-            <div className="space-y-3 p-4 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800">
-              <Label
-                htmlFor="passphrase-custom"
-                className="text-sm font-medium flex items-center text-green-700 dark:text-green-400"
-              >
-                <Lock className="h-4 w-4 mr-2" />
-                Kata Sandi Enkripsi
-              </Label>
-              <Input
-                id="passphrase-custom"
-                type="password"
-                value={sharedPassphrase}
-                onChange={(ev) => setSharedPassphrase(ev.target.value)}
-                placeholder="Masukkan kata sandi"
-                className="border-green-300 dark:border-green-700 focus:border-green-500"
-              />
-            </div>
-          )}
-
-          <Button
-            type="submit"
-            className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 shadow-lg hover:shadow-xl transition-all duration-200"
-            size="lg"
-          >
-            <Zap className="h-5 w-5 mr-2" />
-            Hubungkan ke Server
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
-  )
-}
-*/
-
 function FeatureCard({ icon: Icon, title, description }: { icon: any; title: string; description: string }) {
   return (
-    <Card className="border-0 bg-gradient-to-br from-card to-muted/20 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-      <CardContent className="p-6 text-center">
-        <div className="mx-auto mb-4 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-          <Icon className="h-6 w-6 text-white" />
+    <Card className="border border-white/10 bg-[#161616] hover:border-white/20 transition-all duration-200 rounded-xl">
+      <CardContent className="p-6 text-left">
+        <div className="mb-4 w-10 h-10 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center text-white">
+          <Icon className="h-5 w-5 text-[#1f8cf9]" />
         </div>
-        <h3 className="font-semibold text-lg mb-2">{title}</h3>
-        <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
+        <h3 className="font-medium text-base text-white mb-1.5">{title}</h3>
+        <p className="text-xs text-neutral-400 leading-relaxed">{description}</p>
       </CardContent>
     </Card>
   )
 }
 
-export default function Page() {  const features = [
+export default function Page() {
+  const features = [
     {
       icon: Video,
       title: "HD Video & Audio",
-      description: "Kualitas video hingga 4K dan audio crystal clear untuk pengalaman terbaik",
+      description: "Kualitas streaming adaptif dengan kompresi VP9/AV1 untuk pengalaman audio-video yang jernih.",
     },
     {
       icon: Shield,
       title: "End-to-End Encryption",
-      description: "Keamanan tingkat militer melindungi setiap percakapan Anda",
+      description: "Keamanan tingkat tinggi melindungi setiap percakapan dengan kunci enkripsi privat.",
     },
     {
       icon: Users,
       title: "Multi-Participant",
-      description: "Dukung hingga ratusan peserta dalam satu meeting",
+      description: "Mendukung koneksi multi-partisipan dengan alokasi bandwidth cerdas (Dynacast).",
     },
     {
       icon: Zap,
       title: "Real-time Performance",
-      description: "Latensi ultra-rendah untuk kolaborasi yang seamless",
+      description: "Infrastruktur WebRTC berlatensi ultra-rendah untuk kolaborasi tanpa hambatan.",
     },
     {
       icon: Globe,
       title: "Global Infrastructure",
-      description: "Server tersebar di seluruh dunia untuk koneksi optimal",
+      description: "Konektivitas global terdistribusi untuk kualitas meeting optimal dari mana saja.",
     },
     {
       icon: Heart,
       title: "Built with Empathy",
-      description: "Dirancang dengan memahami kebutuhan kolaborasi modern",
+      description: "Dirancang dengan fokus pada kenyamanan, privasi, dan kemudahan kolaborasi tim.",
     },
   ]
 
   return (
-    <>
-      <main
-        className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20"
-        data-lk-theme="default"
-      >
+    <div className="min-h-screen bg-[#111111] text-white flex flex-col justify-between" data-lk-theme="default">
+      <main className="w-full">
         {/* Hero Section */}
-        <div className="pt-20 pb-12 px-8">
-          <div className="w-full max-w-6xl mx-auto text-center space-y-12">
-            {/* Main Hero */}
-            <div className="space-y-8">
-              <div className="mx-auto relative max-w-4xl">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 rounded-3xl blur-3xl opacity-20 animate-pulse"></div>
-                <div className="relative bg-gradient-to-br from-card via-card to-muted/30 rounded-3xl p-12 border-2 border-primary/10 shadow-2xl">
-                  <div className="flex items-center justify-center mb-6">
-                    <Badge
-                      variant="secondary"
-                      className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-950 dark:to-purple-950 text-blue-700 dark:text-blue-300 border-0"
-                    >
-                      <Sparkles className="h-4 w-4 mr-2" />
-                      Powered by LiveKit
-                    </Badge>
-                  </div>
-                  <h1 className="text-7xl md:text-8xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent mb-4">
-                    KolabEmpati
-                  </h1>
-                  <p className="text-2xl text-muted-foreground font-medium mb-6">
-                    🎥 Modern Video Conferencing Platform
-                  </p>
-                  <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span>Gratis</span>
-                    <span>•</span>
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span>Aman</span>
-                    <span>•</span>
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span>Mudah Digunakan</span>
-                  </div>
-                </div>
+        <div className="pt-16 pb-12 px-6">
+          <div className="w-full max-w-5xl mx-auto text-center space-y-10">
+            {/* Header Content */}
+            <div className="space-y-4 max-w-3xl mx-auto">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-neutral-300 text-xs font-medium">
+                <Sparkles className="h-3.5 w-3.5 text-[#1f8cf9]" />
+                <span>Powered by LiveKit WebRTC</span>
               </div>
+              
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white">
+                KolabEmpati
+              </h1>
+              
+              <p className="text-base sm:text-lg text-neutral-400 font-normal leading-relaxed max-w-2xl mx-auto">
+                Platform video conferencing modern untuk kolaborasi real-time yang aman, andal, dan berkinerja tinggi.
+              </p>
 
-              <div className="max-w-3xl mx-auto">
-                <h2 className="text-2xl md:text-3xl text-muted-foreground leading-relaxed font-light">
-                  Platform kolaborasi video modern yang dibangun dengan teknologi canggih untuk pengalaman komunikasi
-                  <span className="text-primary font-medium"> real-time yang seamless</span> dan penuh empati.
-                </h2>
-              </div>            </div>            {/* Main CTA */}
-            <div className="flex justify-center">
+              <div className="flex items-center justify-center space-x-3 text-xs text-neutral-400 pt-1">
+                <span className="inline-flex items-center"><CheckCircle2 className="h-3.5 w-3.5 mr-1 text-emerald-400" /> Gratis</span>
+                <span>•</span>
+                <span className="inline-flex items-center"><CheckCircle2 className="h-3.5 w-3.5 mr-1 text-emerald-400" /> E2EE Ready</span>
+                <span>•</span>
+                <span className="inline-flex items-center"><CheckCircle2 className="h-3.5 w-3.5 mr-1 text-emerald-400" /> WebRTC Standar</span>
+              </div>
+            </div>
+
+            {/* Main Action Tabs */}
+            <div className="flex justify-center pt-2">
               <Suspense
                 fallback={
-                  <div className="flex items-center justify-center p-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    <span className="ml-3 text-muted-foreground">Memuat...</span>
+                  <div className="flex items-center justify-center p-8 text-neutral-400 text-sm">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#1f8cf9] mr-2"></div>
+                    Memuat...
                   </div>
                 }
               >
@@ -429,78 +293,53 @@ export default function Page() {  const features = [
               </Suspense>
             </div>
 
-            {/* Additional Features - Emotion Detection */}
-            <div className="max-w-4xl mx-auto mt-16">
-              <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold mb-2">Fitur Tambahan</h3>
-                <p className="text-muted-foreground">Eksplorasi teknologi AI untuk komunikasi yang lebih empati</p>
-              </div>
-              
-              <Card className="border-2 border-purple-200 dark:border-purple-800 shadow-2xl bg-gradient-to-br from-card to-purple-50/50 dark:to-purple-950/20 w-full max-w-2xl mx-auto">
-                <CardHeader className="text-center pb-4">
-                  <div className="mx-auto mb-4 w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
-                    <Brain className="h-8 w-8 text-white" />
+            {/* AI Emotion Feature Card */}
+            <div className="max-w-lg mx-auto pt-6">
+              <Card className="border border-white/10 bg-[#161616] text-white rounded-2xl overflow-hidden shadow-xl text-left">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-10 h-10 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-[#1f8cf9]">
+                      <Brain className="h-5 w-5" />
+                    </div>
+                    <Badge variant="outline" className="text-[11px] border-white/15 bg-white/5 text-neutral-300">
+                      AI Experimental
+                    </Badge>
                   </div>
-                  <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                    Deteksi Emosi AI
+                  <CardTitle className="text-lg font-semibold text-white mt-3">
+                    Deteksi Emosi Wajah (Face-API)
                   </CardTitle>
-                  <CardDescription className="text-base text-muted-foreground">
-                    Analisis emosi real-time menggunakan kecerdasan buatan untuk komunikasi yang lebih empati.
-                    <br />
-                    <span className="text-purple-600 dark:text-purple-400 font-medium">Fitur eksperimental - Standalone</span>
+                  <CardDescription className="text-xs text-neutral-400">
+                    Analisis ekspresi emosi real-time langsung di browser tanpa menyimpan data video Anda.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span>Real-time Detection</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span>7 Emosi Dasar</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span>Privacy First</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span>No Data Storage</span>
-                    </div>
-                  </div>
-                  
+                <CardContent className="space-y-4 pt-1">
                   <Button
                     onClick={() => window.open('/emotion', '_blank')}
-                    className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-lg hover:shadow-xl transition-all duration-200"
-                    size="lg"
+                    variant="outline"
+                    className="w-full h-11 text-sm font-medium border-white/15 bg-[#1f1f1f] hover:bg-[#282828] text-white rounded-xl flex items-center justify-center"
                   >
-                    <Brain className="h-5 w-5 mr-2" />
-                    Coba Deteksi Emosi
+                    Buka Deteksi Emosi
+                    <ArrowUpRight className="h-4 w-4 ml-1.5 text-neutral-400" />
                   </Button>
-                  
-                  <p className="text-xs text-muted-foreground text-center">
-                    💡 Fitur ini berjalan terpisah dari video conference dan menggunakan Face API.js
-                  </p>
                 </CardContent>
               </Card>
             </div>
           </div>
         </div>
 
-        {/* Features Section */}
-        <div className="py-20 px-8 bg-gradient-to-t from-muted/30 to-transparent">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Mengapa Memilih KolabEmpati?
+        {/* Features Grid Section */}
+        <div className="py-16 px-6 border-t border-white/10 bg-[#0e0e0e]">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-12 space-y-2">
+              <h2 className="text-2xl font-bold text-white">
+                Keunggulan Arsitektur
               </h2>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Fitur-fitur canggih yang dirancang untuk memberikan pengalaman video conferencing terbaik
+              <p className="text-sm text-neutral-400 max-w-xl mx-auto">
+                Dibangun di atas fondasi teknologi WebRTC LiveKit kelas industri
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {features.map((feature, index) => (
                 <FeatureCard key={index} {...feature} />
               ))}
@@ -509,66 +348,45 @@ export default function Page() {  const features = [
         </div>
       </main>
 
-      {/* Enhanced Footer */}
-      <footer
-        className="border-t bg-gradient-to-r from-card to-muted/20 text-card-foreground py-12"
-        data-lk-theme="default"
-      >
-        <div className="max-w-6xl mx-auto px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-            <div className="text-center md:text-left">
-              <h3 className="font-bold text-lg mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                KolabEmpati
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Platform video conferencing modern untuk kolaborasi yang lebih baik
+      {/* LiveKit Style Footer */}
+      <footer className="border-t border-white/10 bg-[#111111] py-10" data-lk-theme="default">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 text-sm">
+            <div>
+              <h3 className="font-semibold text-white mb-2">KolabEmpati</h3>
+              <p className="text-xs text-neutral-400 leading-relaxed">
+                Platform video conferencing modern berbasis LiveKit WebRTC dan Face-API AI.
               </p>
             </div>
 
-            <div className="text-center">
-              <h4 className="font-semibold mb-2">Teknologi</h4>
-              <p className="text-sm text-muted-foreground">
-                Dibangun dengan Next.js, LiveKit, dan teknologi WebRTC terdepan
+            <div>
+              <h4 className="font-medium text-white mb-2">Teknologi</h4>
+              <p className="text-xs text-neutral-400 leading-relaxed">
+                Next.js, LiveKit Client SDK, E2EE WebCrypto API, Face-API.js.
               </p>
             </div>
 
-            <div className="text-center md:text-right">
-              <h4 className="font-semibold mb-2">Open Source</h4>
-              <p className="text-sm text-muted-foreground">
-                Kode sumber terbuka dan dapat dikustomisasi sesuai kebutuhan
+            <div className="md:text-right">
+              <h4 className="font-medium text-white mb-2">Infrastruktur</h4>
+              <p className="text-xs text-neutral-400 leading-relaxed">
+                Konektivitas SFU LiveKit Cloud dengan protokol WebRTC standar.
               </p>
             </div>
           </div>
 
-          <div className="border-t border-border pt-8 text-center">
-            <p className="text-sm text-muted-foreground mb-4">
-              Powered by{" "}
-              <a
-                href="https://livekit.io/cloud?ref=meet"
-                rel="noopener"
-                className="text-primary hover:underline font-medium transition-colors"
-              >
-                LiveKit Cloud
-              </a>{" "}
-              • Built with ❤️ for seamless collaboration
+          <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-500">
+            <p>
+              Powered by <a href="https://livekit.io" target="_blank" rel="noopener noreferrer" className="text-[#1f8cf9] hover:underline">LiveKit</a> • KolabEmpati Platform
             </p>
-            <div className="flex items-center justify-center space-x-4 text-xs text-muted-foreground">
-              <span className="flex items-center">
-                <Shield className="h-3 w-3 mr-1" />
-                Secure
-              </span>
-              <span className="flex items-center">
-                <Zap className="h-3 w-3 mr-1" />
-                Fast
-              </span>
-              <span className="flex items-center">
-                <Heart className="h-3 w-3 mr-1" />
-                Empathetic
-              </span>
+            <div className="flex items-center space-x-4">
+              <span className="flex items-center"><Shield className="h-3 w-3 mr-1" /> Secure</span>
+              <span className="flex items-center"><Zap className="h-3 w-3 mr-1" /> Ultra-low Latency</span>
+              <span className="flex items-center"><Heart className="h-3 w-3 mr-1" /> Empathetic</span>
             </div>
           </div>
         </div>
       </footer>
-    </>
+    </div>
   )
 }
+
